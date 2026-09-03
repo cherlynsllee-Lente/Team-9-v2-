@@ -30,6 +30,7 @@ import { DiscoverScreen } from './components/DiscoverScreen';
 import { PlanGameScreen } from './components/PlanGameScreen';
 import { FindPlayersScreen } from './components/FindPlayersScreen';
 import { MyActivitiesScreen } from './components/MyActivitiesScreen';
+import { TalkToUsScreen } from './components/TalkToUsScreen';
 import { ProfileScreen } from './components/ProfileScreen';
 import { FacilityDetailModal } from './components/FacilityDetailModal';
 import { GameDetailModal } from './components/GameDetailModal';
@@ -359,6 +360,8 @@ export default function App() {
               onCancelBooking={handleCancelBooking}
             />
           )}
+
+          {activeTab === 'talk' && <TalkToUsScreen />}
 
           {activeTab === 'profile' && (
             <ProfileScreen

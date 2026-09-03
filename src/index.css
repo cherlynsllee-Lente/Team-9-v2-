@@ -43,3 +43,13 @@
   border: 1px solid rgba(51, 65, 85, 0.5);
 }
 
+/* Explicit standard RGB values for Disqus thread elements to ensure parser compatibility */
+#disqus_thread,
+#disqus_thread * {
+  color: rgb(226, 232, 240);
+}
+#disqus_thread a {
+  color: rgb(249, 115, 22);
+}
+
+

@@ -43,7 +43,11 @@ export const PlanGameScreen: React.FC<PlanGameScreenProps> = ({
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard?.writeText('https://pulsesport.sg/poll/badminton-weekend-alex');
+    try {
+      navigator.clipboard?.writeText('https://pulsesport.sg/poll/badminton-weekend-alex')?.catch(() => {});
+    } catch {
+      // ignore clipboard permission rejection
+    }
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2500);
   };

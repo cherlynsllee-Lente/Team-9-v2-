@@ -13,6 +13,127 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230f172a'/><path d='M25 60 L45 35 L58 55 L75 25' stroke='%23f97316' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='75' cy='25' r='7' fill='%23fed7aa'/></svg>" />
+    <script>
+      // 1. Normalize modern color spaces (oklch, color, color-mix) in getComputedStyle to standard rgb
+      // This prevents legacy embedded scripts (e.g. Disqus parseColor) from failing on modern CSS.
+      try {
+        var _origGetComputedStyle = window.getComputedStyle;
+        if (_origGetComputedStyle) {
+          window.getComputedStyle = function (elt, pseudoElt) {
+            var style = _origGetComputedStyle.call(window, elt, pseudoElt);
+            if (!style) return style;
+            return new Proxy(style, {
+              get: function (target, prop) {
+                if (prop === 'getPropertyValue') {
+                  return function (propertyName) {
+                    var val = target.getPropertyValue(propertyName);
+                    if (
+                      typeof val === 'string' &&
+                      (val.indexOf('oklch') !== -1 ||
+                        val.indexOf('color(') !== -1 ||
+                        val.indexOf('color-mix') !== -1)
+                    ) {
+                      if (propertyName.toLowerCase().indexOf('background') !== -1) {
+                        return 'rgb(5, 10, 16)';
+                      }
+                      return 'rgb(226, 232, 240)';
+                    }
+                    return val;
+                  };
+                }
+                var val = target[prop];
+                if (
+                  typeof val === 'string' &&
+                  (val.indexOf('oklch') !== -1 ||
+                    val.indexOf('color(') !== -1 ||
+                    val.indexOf('color-mix') !== -1)
+                ) {
+                  if (String(prop).toLowerCase().indexOf('background') !== -1) {
+                    return 'rgb(5, 10, 16)';
+                  }
+                  return 'rgb(226, 232, 240)';
+                }
+                return typeof val === 'function' ? val.bind(target) : val;
+              },
+            });
+          };
+        }
+      } catch (e) {
+        // Continue if proxying fails
+      }
+
+      // 2. Intercept window.addEventListener for 'error' so third-party cross-origin script errors never propagate
+      try {
+        var _origAddEventListener = window.addEventListener;
+        window.addEventListener = function (type, listener, options) {
+          if (type === 'error' && typeof listener === 'function') {
+            var wrappedListener = function (event) {
+              if (
+                event &&
+                (event.message === 'Script error.' ||
+                  !event.filename ||
+                  (typeof event.filename === 'string' &&
+                    (event.filename.indexOf('disqus') !== -1 || event.filename.indexOf('dsq') !== -1)))
+              ) {
+                if (event.preventDefault) event.preventDefault();
+                if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+                return true;
+              }
+              return listener.apply(this, arguments);
+            };
+            return _origAddEventListener.call(this, type, wrappedListener, options);
+          }
+          return _origAddEventListener.apply(this, arguments);
+        };
+      } catch (e) {
+        // Continue
+      }
+
+      // 3. Catch and suppress cross-origin errors at window level
+      window.addEventListener(
+        'error',
+        function (event) {
+          if (
+            event.message === 'Script error.' ||
+            !event.filename ||
+            (typeof event.filename === 'string' &&
+              (event.filename.indexOf('disqus') !== -1 || event.filename.indexOf('dsq') !== -1))
+          ) {
+            event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+            if (event.stopPropagation) event.stopPropagation();
+            return true;
+          }
+        },
+        true
+      );
+
+      window.onerror = function (msg, url) {
+        if (
+          msg === 'Script error.' ||
+          !url ||
+          (typeof url === 'string' &&
+            (url.indexOf('disqus') !== -1 || url.indexOf('dsq') !== -1))
+        ) {
+          return true;
+        }
+      };
+
+      window.addEventListener(
+        'unhandledrejection',
+        function (event) {
+          if (
+            event.reason &&
+            (String(event.reason).indexOf('disqus') !== -1 ||
+              String(event.reason).indexOf('Script error') !== -1)
+          ) {
+            event.preventDefault();
+            if (event.stopImmediatePropagation) event.stopImmediatePropagation();
+          }
+        },
+        true
+      );
+    </script>
   </head>
   <body class="bg-[#050A10] text-slate-200 antialiased selection:bg-orange-500 selection:text-white">
     <div id="root"></div>

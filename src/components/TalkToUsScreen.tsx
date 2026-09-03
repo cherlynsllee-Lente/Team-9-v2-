@@ -8,47 +8,70 @@ export const TalkToUsScreen: React.FC = () => {
   useEffect(() => {
     // Real fixed configuration for Disqus
     const configureDisqus = function (this: any) {
-      this.page.url = PAGE_URL;
-      this.page.identifier = PAGE_IDENTIFIER;
+      try {
+        if (!this) return;
+        if (!this.page) {
+          this.page = {};
+        }
+        this.page.url = PAGE_URL;
+        this.page.identifier = PAGE_IDENTIFIER;
+      } catch (err) {
+        // Safe guard against unexpected configurator context
+      }
     };
 
     // Set global disqus_config
     (window as any).disqus_config = configureDisqus;
 
-    // In a Single-Page Application, if DISQUS is already initialized on the window,
-    // we MUST use DISQUS.reset to reload the comments thread into the newly mounted #disqus_thread container.
-    if (typeof (window as any).DISQUS !== 'undefined') {
-      try {
-        (window as any).DISQUS.reset({
-          reload: true,
-          config: configureDisqus,
-        });
-      } catch (err) {
-        console.warn('Disqus reset error:', err);
-      }
-    } else {
-      // First-time load: append embed.js script if not present
-      const embedScriptId = 'disqus-embed-script';
-      if (!document.getElementById(embedScriptId)) {
-        const d = document;
-        const s = d.createElement('script');
-        s.id = embedScriptId;
-        s.src = 'https://https-team9v2-vercel-app.disqus.com/embed.js';
-        s.setAttribute('data-timestamp', String(+new Date()));
-        (d.head || d.body).appendChild(s);
-      }
+    const timer = setTimeout(() => {
+      // In a Single-Page Application, if DISQUS is already initialized on the window,
+      // we MUST use DISQUS.reset to reload the comments thread into the newly mounted #disqus_thread container.
+      if (
+        typeof (window as any).DISQUS !== 'undefined' &&
+        typeof (window as any).DISQUS.reset === 'function'
+      ) {
+        try {
+          (window as any).DISQUS.reset({
+            reload: true,
+            config: configureDisqus,
+          });
+        } catch (err) {
+          console.warn('Disqus reset error:', err);
+        }
+      } else {
+        // First-time load: append embed.js script if not present
+        const embedScriptId = 'disqus-embed-script';
+        if (!document.getElementById(embedScriptId)) {
+          const d = document;
+          const s = d.createElement('script');
+          s.id = embedScriptId;
+          s.src = 'https://https-team9v2-vercel-app.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', String(+new Date()));
+          s.onerror = () => {
+            console.warn('Disqus embed script blocked or failed to load.');
+          };
+          (d.head || d.body).appendChild(s);
+        }
 
-      // Append count.js script if not present
-      const countScriptId = 'dsq-count-scr';
-      if (!document.getElementById(countScriptId)) {
-        const d = document;
-        const s = d.createElement('script');
-        s.id = countScriptId;
-        s.src = 'https://https-team9v2-vercel-app.disqus.com/count.js';
-        s.async = true;
-        (d.head || d.body).appendChild(s);
+        // Append count.js script if not present
+        const countScriptId = 'dsq-count-scr';
+        if (!document.getElementById(countScriptId)) {
+          const d = document;
+          const s = d.createElement('script');
+          s.id = countScriptId;
+          s.src = 'https://https-team9v2-vercel-app.disqus.com/count.js';
+          s.async = true;
+          s.onerror = () => {
+            console.warn('Disqus count script blocked or failed to load.');
+          };
+          (d.head || d.body).appendChild(s);
+        }
       }
-    }
+    }, 50);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, []);
 
   return (
@@ -105,7 +128,11 @@ export const TalkToUsScreen: React.FC = () => {
         </div>
 
         {/* The Disqus container required by Disqus universal code */}
-        <div id="disqus_thread" className="min-h-[320px] w-full text-slate-200"></div>
+        <div
+          id="disqus_thread"
+          className="min-h-[320px] w-full text-slate-200"
+          style={{ color: 'rgb(226, 232, 240)', backgroundColor: 'transparent' }}
+        ></div>
 
         {/* Noscript fallback required by Disqus code */}
         <noscript>

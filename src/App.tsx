@@ -361,7 +361,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === 'talk' && <TalkToUsScreen />}
+          {activeTab === 'talk' && <TalkToUsScreen userProfile={userProfile} />}
 
           {activeTab === 'profile' && (
             <ProfileScreen

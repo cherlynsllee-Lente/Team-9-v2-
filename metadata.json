@@ -1,0 +1,6 @@
+{
+  "name": "PulseSport",
+  "description": "Singapore sports discovery, facility slot finder, and group session coordination companion for ActiveSG.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

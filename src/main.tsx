@@ -1,6 +1,7 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
+import {ErrorBoundary} from './components/ErrorBoundary.tsx';
 import './index.css';
 
 // Intercept cross-origin script errors (such as third-party embeds/Disqus in iframes)
@@ -39,6 +40,8 @@ window.addEventListener(
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );
